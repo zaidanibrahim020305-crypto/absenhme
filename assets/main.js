@@ -2,6 +2,36 @@
 // ============================================================
 // DATA STORE
 // ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  push,
+  update
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBKIY8dpENwuOCa5v1k-vNreFq3rztkz9k",
+  authDomain: "hme24-79562.firebaseapp.com",
+  databaseURL: "https://hme24-79562-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hme24-79562",
+  storageBucket: "hme24-79562.firebasestorage.app",
+  messagingSenderId: "879738852701",
+  appId: "1:879738852701:web:f0aae0fdcfdcc61d15c4b4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.db = db;
+window.firebaseRef = ref;
+window.firebaseSet = set;
+window.firebaseGet = get;
+window.firebasePush = push;
+window.firebaseUpdate = update;
+
 const DB = {
   getAbsen: () => JSON.parse(localStorage.getItem('hme_absen') || '[]'),
   setAbsen: (d) => localStorage.setItem('hme_absen', JSON.stringify(d)),
