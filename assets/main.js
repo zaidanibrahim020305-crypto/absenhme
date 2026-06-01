@@ -148,6 +148,25 @@ window.showTab = function(t){
 
 };
 
+function showTab(event, t) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+  });
+
+  document.querySelectorAll('.nav-tab').forEach(b => {
+    b.classList.remove('active');
+  });
+
+  document.getElementById('tab-' + t).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  if (t === 'rekap') renderRekap();
+  if (t === 'dash') refreshDash();
+  if (t === 'setting') updateSettingInfo();
+}
+
+window.showTab = showTab;
+
 // ============================================================
 // GENERATE QR
 // ============================================================
