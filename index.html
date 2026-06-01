@@ -15,280 +15,240 @@
 <!-- ============================================================
      ADMIN PANEL (default view)
 ============================================================ -->
+<!-- ============================================================
+     ADMIN PANEL
+============================================================ -->
 <div id="admin-wrap" class="wrap">
+
+  <!-- NAVBAR -->
   <nav class="navbar">
-    <div class="nav-logo"><img src="./assets/picture/HME_vektor.png" alt="Logo HME" style="width: 50px;"> 
-      <span>Piket HME</span> </div>
-    <div class="nav-tabs">
-           <button class="nav-tab active" onclick="showTab(event,'dash')">
-       📊 Dashboard
-     </button>
-     
-     <button class="nav-tab" onclick="showTab(event,'generate')">
-       🔗 Buat QR
-     </button>
-     
-     <button class="nav-tab" onclick="showTab(event,'rekap')">
-       📋 Rekap
-     </button>
-     
-     <button class="nav-tab" onclick="showTab(event,'setting')">
-       ⚙️ Pengaturan
-     </button>
+
+    <div class="nav-logo">
+      <img src="./assets/picture/HME_vektor.png"
+           alt="Logo HME"
+           style="width:50px;">
+      <span>Piket HME</span>
     </div>
+
+    <div class="nav-tabs">
+
+      <button class="nav-tab active"
+              onclick="showTab('dash')">
+        📊 <span class="label">Dashboard</span>
+      </button>
+
+      <button class="nav-tab"
+              onclick="showTab('generate')">
+        🔗 <span class="label">Buat QR</span>
+      </button>
+
+      <button class="nav-tab"
+              onclick="showTab('rekap')">
+        📋 <span class="label">Rekap</span>
+      </button>
+
+      <button class="nav-tab"
+              onclick="showTab('setting')">
+        ⚙️ <span class="label">Pengaturan</span>
+      </button>
+
+    </div>
+
   </nav>
 
-  <!-- DASHBOARD -->
-  <div id="tab-dash" class="page active">
-    <div class="sec-header">
-      <div class="sec-title">Dashboard Absensi Piket HME</div>
-      <div class="sec-sub" id="dash-date"></div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">Total Hadir Hari Ini</div>
-        <div class="stat-val blue" id="stat-hadir">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">QR Aktif</div>
-        <div class="stat-val yellow" id="stat-qr-aktif">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">QR Sudah Dipakai</div>
-        <div class="stat-val green" id="stat-qr-used">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">QR Kedaluwarsa</div>
-        <div class="stat-val red" id="stat-qr-exp">0</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="flex-between" style="margin-bottom:1rem;">
-        <div style="font-weight:600;">Aktivitas Terbaru</div>
-        <button class="btn btn-sm btn-outline" onclick="refreshDash()">↻ Refresh</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Nama</th><th>NIM</th><th>Waktu</th><th>Lokasi</th><th>Foto</th><th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="dash-tbody">
-            <tr><td colspan="6" style="text-align:center; color:var(--text3); padding:2rem;">Belum ada data absensi</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <!-- ============================================================
+       DASHBOARD
+  ============================================================ -->
+  <section id="tab-dash" class="page active">
 
-  <!-- GENERATE QR -->
-  <div id="tab-generate" class="page">
-    <div class="sec-header">
-      <div class="sec-title">Buat QR Code Absen</div>
-      <div class="sec-sub">QR bersifat sekali pakai dengan durasi 15 detik</div>
-    </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
-      <div>
-        <div class="card">
-          <div style="font-weight:600; margin-bottom:1rem;">Data Sesi Piket</div>
-          <div class="form-group">
-            <label>Nama Kegiatan / Shift</label>
-            <input type="text" id="gen-nama-kegiatan" placeholder="cth: Piket Harian Senin">
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="margin-bottom:0;">
-              <label>Tanggal</label>
-              <input type="date" id="gen-tanggal">
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label>Durasi Link (detik)</label>
-              <input type="number" id="gen-durasi" value="15" min="5" max="60">
-            </div>
-          </div>
-          <div class="divider"></div>
-          <div class="form-group">
-            <label>Radius Kawasan Camp Elektro (meter)</label>
-            <input type="number" id="gen-radius" value="100" min="5">
-            <div class="text-sm mt-1">Koordinat pusat kawasan:</div>
-          </div>
-          <div class="form-row">
-            <div class="form-group" style="margin-bottom:0;">
-              <label>Latitude Pusat</label>
-              <input type="number" id="gen-lat" value="-7.9365185" step="0.0001" placeholder="">
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label>Longitude Pusat</label>
-              <input type="number" id="gen-lng" value="112.6072751" step="0.0001" placeholder="112.6424">
-            </div>
-          </div>
-          <div class="divider"></div>
-          <button class="btn btn-primary" style="width:100%;" onclick="generateQR()">
-            ⚡ Generate QR Code
-          </button>
-        </div>
-        <div class="card" style="margin-top:1rem;">
-          <div style="font-weight:600; margin-bottom:1rem;">QR yang Dihasilkan</div>
-          <div class="table-wrap" style="max-height:220px; overflow-y:auto;">
-            <table>
-              <thead>
-                <tr><th>Kegiatan</th><th>Dibuat</th><th>Status</th></tr>
-              </thead>
-              <tbody id="qr-history-tbody">
-                <tr><td colspan="3" style="text-align:center; color:var(--text3); padding:1rem;">Belum ada QR</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div>
-        <div id="qr-output" class="card" style="display:none; flex-direction:column; align-items:center; gap:1.5rem;">
-          <div style="font-weight:600; font-size:16px;">QR Code Siap</div>
-          <div id="qrcode-box"></div>
-          <div style="width:100%;">
-            <div class="text-sm" style="margin-bottom:4px; color:var(--text3);">Link Absen:</div>
-            <div class="qr-link-box" id="gen-link-text">—</div>
-            <div class="countdown-ring">
-              <span id="countdown-num">15</span>
-              <div id="countdown-bar"><div id="countdown-fill" style="width:100%;"></div></div>
-              <span class="text-sm">detik</span>
-            </div>
-            <div class="badge badge-yellow mt-1" id="gen-status-badge">⏳ Aktif</div>
-          </div>
-          <div style="display:flex; gap:8px; width:100%;">
-            <button class="btn btn-outline" style="flex:1;" onclick="downloadQR()">⬇ Download QR</button>
-            <button class="btn btn-primary" style="flex:1;" onclick="copyLink()">📋 Copy Link</button>
-          </div>
-        </div>
-        <div class="card" style="margin-top:1rem;">
-          <div style="font-weight:600; margin-bottom:1rem;">Panduan Penggunaan</div>
-          <div style="font-size:13px; color:var(--text2); line-height:1.8;">
-            <p>1. Isi data sesi piket dan klik <strong>Generate QR</strong></p>
-            <p>2. QR akan aktif selama <strong>15 detik</strong> (sesuai setting)</p>
-            <p>3. Tampilkan QR kepada anggota piket</p>
-            <p>4. Anggota scan QR menggunakan HP mereka</p>
-            <p>5. Sistem verifikasi lokasi kawasan Camp Elektro</p>
-            <p>6. Setelah submit, HP anggota buka kamera untuk foto</p>
-            <p>7. QR <strong>tidak dapat digunakan dua kali</strong></p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <h2>Dashboard</h2>
 
-  <!-- REKAP -->
-  <div id="tab-rekap" class="page">
-    <div class="sec-header flex-between">
-      <div>
-        <div class="sec-title">Rekap Laporan Absensi</div>
-        <div class="sec-sub">Data tidak dapat diubah setelah tercatat</div>
-      </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn btn-outline btn-sm" onclick="exportExcel()">📊 Export Excel</button>
-      </div>
-    </div>
-    <div class="card" style="margin-bottom:1rem;">
-      <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
-        <div style="flex:1; min-width:160px;">
-          <label>Filter Tanggal</label>
-          <input type="date" id="filter-tgl" oninput="filterRekap()">
-        </div>
-        <div style="flex:1; min-width:160px;">
-          <label>Cari Nama / NIM</label>
-          <input type="text" id="filter-q" placeholder="Ketik nama atau NIM..." oninput="filterRekap()">
-        </div>
-        <button class="btn btn-outline btn-sm" onclick="clearFilter()">✕ Reset Filter</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="table-wrap">
-        <table id="rekap-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Nama Lengkap</th>
-              <th>NIM</th>
-              <th>Kegiatan</th>
-              <th>Tanggal</th>
-              <th>Waktu Submit</th>
-              <th>Koordinat</th>
-              <th>Foto</th>
-              <th>QR Token</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="rekap-tbody">
-            <tr><td colspan="10" style="text-align:center; color:var(--text3); padding:2rem;">Belum ada data absensi</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+    <div id="dash-date"></div>
 
-  <!-- SETTING -->
-  <div id="tab-setting" class="page">
-    <div class="sec-header">
-      <div class="sec-title">Pengaturan Sistem</div>
-      <div class="sec-sub">Konfigurasi sistem absensi piket HME</div>
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <h3 id="stat-hadir">0</h3>
+        <p>Hadir Hari Ini</p>
+      </div>
+
+      <div class="stat-card">
+        <h3 id="stat-qr-aktif">0</h3>
+        <p>QR Aktif</p>
+      </div>
+
+      <div class="stat-card">
+        <h3 id="stat-qr-used">0</h3>
+        <p>QR Digunakan</p>
+      </div>
+
+      <div class="stat-card">
+        <h3 id="stat-qr-exp">0</h3>
+        <p>QR Expired</p>
+      </div>
+
     </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
-      <div class="card">
-        <div style="font-weight:600; margin-bottom:1rem;">Tentang Sistem</div>
-        <div style="font-size:13px; color:var(--text2); line-height:2;">
-          <div>Nama Sistem: <strong style="color:var(--text);">Absensi Piket HME</strong></div>
-          <div>Versi: <strong style="color:var(--text);">1.0.0</strong></div>
-          <div>Pembuat: <strong style="color:var(--accent2);">HME — Himpunan Mahasiswa Elektro</strong></div>
-          <div>Institusi: <strong style="color:var(--text);">Politeknik / Universitas</strong></div>
-        </div>
-        <div class="divider"></div>
-        <div style="font-size:12px; color:var(--text3); line-height:1.8;">
-          Sistem ini dirancang khusus untuk keperluan absensi piket organisasi HME.
-          Data absensi bersifat <strong style="color:var(--text2);">read-only</strong> dan tidak dapat dimodifikasi setelah tercatat.
-          Export Excel tersedia untuk keperluan pelaporan.
-        </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>NIM</th>
+          <th>Waktu</th>
+          <th>Lokasi</th>
+          <th>Foto</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="dash-tbody"></tbody>
+    </table>
+
+  </section>
+
+  <!-- ============================================================
+       GENERATE QR
+  ============================================================ -->
+  <section id="tab-generate" class="page">
+
+    <h2>Buat QR Absensi</h2>
+
+    <input id="gen-nama-kegiatan"
+           type="text"
+           placeholder="Nama Kegiatan">
+
+    <input id="gen-tanggal"
+           type="date">
+
+    <input id="gen-durasi"
+           type="number"
+           value="60">
+
+    <input id="gen-lat"
+           type="number"
+           placeholder="Latitude">
+
+    <input id="gen-lng"
+           type="number"
+           placeholder="Longitude">
+
+    <input id="gen-radius"
+           type="number"
+           value="100">
+
+    <button onclick="generateQR()">
+      Generate QR
+    </button>
+
+    <div id="qr-output" style="display:none;">
+
+      <div id="qrcode-box"></div>
+
+      <div id="gen-status-badge"
+           class="badge badge-yellow">
       </div>
-      <div class="card">
-        <div style="font-weight:600; margin-bottom:1rem;">Fitur Keamanan</div>
-        <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
-          <div class="loc-item">
-            <div class="loc-dot green"></div>
-            <span><strong>Geofencing</strong> — Verifikasi lokasi kawasan Camp Elektro</span>
-          </div>
-          <div class="loc-item">
-            <div class="loc-dot green"></div>
-            <span><strong>QR Sekali Pakai</strong> — Token hangus setelah submit pertama</span>
-          </div>
-          <div class="loc-item">
-            <div class="loc-dot green"></div>
-            <span><strong>Batas Waktu 15 Detik</strong> — Link expired otomatis</span>
-          </div>
-          <div class="loc-item">
-            <div class="loc-dot green"></div>
-            <span><strong>Foto Selfie</strong> — Kamera terbuka otomatis, 1x foto</span>
-          </div>
-          <div class="loc-item">
-            <div class="loc-dot green"></div>
-            <span><strong>Data Immutable</strong> — Rekap tidak dapat diedit</span>
-          </div>
-        </div>
+
+      <div class="progress">
+        <div id="countdown-fill"></div>
       </div>
-      <div class="card">
-        <div style="font-weight:600; margin-bottom:1rem;">Hapus Data (Reset)</div>
-        <div style="font-size:13px; color:var(--text2); margin-bottom:1rem;">
-          Hapus semua data absensi dan riwayat QR. Tindakan ini tidak dapat dibatalkan.
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="confirmReset()">🗑 Reset Semua Data</button>
-      </div>
-      <div class="card">
-        <div style="font-weight:600; margin-bottom:1rem;">Status Penyimpanan</div>
-        <div style="font-size:13px; color:var(--text2); line-height:2;">
-          <div>Total Record Absensi: <strong style="color:var(--accent2);" id="info-total-absen">0</strong></div>
-          <div>Total QR Dibuat: <strong style="color:var(--accent2);" id="info-total-qr">0</strong></div>
-          <div>Penyimpanan: <strong style="color:var(--green);">LocalStorage (Browser)</strong></div>
-        </div>
-      </div>
+
+      <div id="countdown-num">0</div>
+
+      <p id="gen-link-text"></p>
+
+      <button onclick="copyLink()">
+        Copy Link
+      </button>
+
+      <button onclick="downloadQR()">
+        Download QR
+      </button>
+
     </div>
-  </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Kegiatan</th>
+          <th>Waktu</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody id="qr-history-tbody"></tbody>
+    </table>
+
+  </section>
+
+  <!-- ============================================================
+       REKAP
+  ============================================================ -->
+  <section id="tab-rekap" class="page">
+
+    <h2>Rekap Absensi</h2>
+
+    <input id="filter-tgl" type="date">
+
+    <input id="filter-q"
+           type="text"
+           placeholder="Cari Nama / NIM">
+
+    <button onclick="filterRekap()">
+      Filter
+    </button>
+
+    <button onclick="clearFilter()">
+      Reset
+    </button>
+
+    <button onclick="exportExcel()">
+      Export Excel
+    </button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Nama</th>
+          <th>NIM</th>
+          <th>Kegiatan</th>
+          <th>Tanggal</th>
+          <th>Waktu</th>
+          <th>Lokasi</th>
+          <th>Foto</th>
+          <th>Token</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody id="rekap-tbody"></tbody>
+
+    </table>
+
+  </section>
+
+  <!-- ============================================================
+       SETTING
+  ============================================================ -->
+  <section id="tab-setting" class="page">
+
+    <h2>Pengaturan Sistem</h2>
+
+    <p>
+      Total Absensi :
+      <strong id="info-total-absen">0</strong>
+    </p>
+
+    <p>
+      Total QR :
+      <strong id="info-total-qr">0</strong>
+    </p>
+
+    <button onclick="confirmReset()">
+      Hapus Semua Data
+    </button>
+
+  </section>
+
 </div>
 
 <!-- ============================================================
