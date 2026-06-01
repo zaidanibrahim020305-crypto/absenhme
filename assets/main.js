@@ -83,18 +83,27 @@ const DB = {
 // ============================================================
 // ROUTING
 // ============================================================
-function init() {
+async function init() {
+
   const hash = window.location.hash;
+
   if (hash.startsWith('#absen/')) {
+
     const token = hash.replace('#absen/', '');
+
     document.getElementById('admin-wrap').style.display = 'none';
     document.getElementById('absen-page').style.display = 'flex';
-    startAbsenFlow(token);
+
+    await startAbsenFlow(token);
+
   } else {
+
     document.getElementById('admin-wrap').style.display = 'block';
     document.getElementById('absen-page').style.display = 'none';
-    refreshDash();
-    updateSettingInfo();
+
+    await refreshDash();
+    await updateSettingInfo();
+
     setTodayDate();
   }
 }
@@ -132,7 +141,7 @@ function generateToken() {
   return 'QR' + Date.now() + Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-function generateQR() {
+async function generateQR() {
   const kegiatan = document.getElementById('gen-nama-kegiatan').value.trim();
   const tgl = document.getElementById('gen-tanggal').value;
   const durasi = parseInt(document.getElementById('gen-durasi').value) || 15;
@@ -154,7 +163,7 @@ function generateQR() {
     created: new Date().toISOString(),
     used: false, expired: false
   };
-  DB.addQR(qrData);
+  await DB.addQR(qrData);
 
   // Render QR
   const box = document.getElementById('qrcode-box');
@@ -197,22 +206,69 @@ function generateQR() {
   refreshDash();
 }
 
-function renderQRHistory() {
-  const list = DB.getQRList().slice().reverse();
+async function renderQRHistory() {
+
+  const list = await DB.getQRList();
+
   const tbody = document.getElementById('qr-history-tbody');
-  if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text3); padding:1rem;">Belum ada QR</td></tr>';
+
+  if (!list || list.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="3"
+            style="text-align:center;
+                   color:var(--text3);
+                   padding:1rem;">
+          Belum ada QR
+        </td>
+      </tr>
+    `;
     return;
   }
-  tbody.innerHTML = list.slice(0, 10).map(q => {
-    const st = q.used ? '<span class="badge badge-green">✓ Dipakai</span>'
-      : q.expired ? '<span class="badge badge-red">✕ Expired</span>'
-      : '<span class="badge badge-yellow">⏳ Aktif</span>';
-    return `<tr>
-      <td style="font-size:13px;">${q.kegiatan}</td>
-      <td class="td-mono">${new Date(q.created).toLocaleTimeString('id-ID')}</td>
-      <td>${st}</td>
-    </tr>`;
+
+  const sortedList = [...list]
+    .sort((a, b) =>
+      new Date(b.created) - new Date(a.created)
+    )
+    .slice(0, 10);
+
+  tbody.innerHTML = sortedList.map(q => {
+
+    let status = '';
+
+    if (q.used) {
+      status =
+        '<span class="badge badge-green">✓ Dipakai</span>';
+    }
+    else if (q.expired) {
+      status =
+        '<span class="badge badge-red">✕ Expired</span>';
+    }
+    else {
+      status =
+        '<span class="badge badge-yellow">⏳ Aktif</span>';
+    }
+
+    return `
+      <tr>
+        <td style="font-size:13px;">
+          ${q.kegiatan || '-'}
+        </td>
+
+        <td class="td-mono">
+          ${
+            q.created
+            ? new Date(q.created)
+                .toLocaleTimeString('id-ID')
+            : '-'
+          }
+        </td>
+
+        <td>
+          ${status}
+        </td>
+      </tr>
+    `;
   }).join('');
 }
 
@@ -233,67 +289,212 @@ function copyLink() {
 // ============================================================
 // DASHBOARD
 // ============================================================
-function refreshDash() {
+async function refreshDash() {
+
   const today = new Date().toISOString().split('T')[0];
-  const absen = DB.getAbsen();
-  const qrList = DB.getQRList();
+
+  const absen = await DB.getAbsen();
+  const qrList = await DB.getQRList();
+
   const todayAbsen = absen.filter(a => a.tgl === today);
 
-  document.getElementById('stat-hadir').textContent = todayAbsen.length;
-  document.getElementById('stat-qr-aktif').textContent = qrList.filter(q => !q.used && !q.expired).length;
-  document.getElementById('stat-qr-used').textContent = qrList.filter(q => q.used).length;
-  document.getElementById('stat-qr-exp').textContent = qrList.filter(q => q.expired && !q.used).length;
+  // Statistik Dashboard
+  document.getElementById('stat-hadir').textContent =
+    todayAbsen.length;
 
+  document.getElementById('stat-qr-aktif').textContent =
+    qrList.filter(q => !q.used && !q.expired).length;
+
+  document.getElementById('stat-qr-used').textContent =
+    qrList.filter(q => q.used).length;
+
+  document.getElementById('stat-qr-exp').textContent =
+    qrList.filter(q => q.expired && !q.used).length;
+
+  // Tabel Absensi Terbaru
   const tbody = document.getElementById('dash-tbody');
-  const recent = absen.slice().reverse().slice(0, 10);
-  if (!recent.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text3); padding:2rem;">Belum ada data absensi</td></tr>';
+
+  const recent = [...absen]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 10);
+
+  if (recent.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6"
+            style="text-align:center;
+                   color:var(--text3);
+                   padding:2rem;">
+          Belum ada data absensi
+        </td>
+      </tr>
+    `;
     return;
   }
+
   tbody.innerHTML = recent.map(r => `
     <tr>
-      <td style="font-weight:500;">${r.nama}</td>
-      <td class="td-mono">${r.nim}</td>
-      <td class="td-mono">${r.waktu}</td>
-      <td style="font-size:12px; color:var(--text2);">${r.lat ? r.lat.toFixed(4)+', '+r.lng.toFixed(4) : '—'}</td>
-      <td>${r.foto ? `<img src="${r.foto}" onclick="showPhoto('${r.foto}')" style="width:36px;height:36px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--border);">` : '—'}</td>
-      <td><span class="badge badge-green">✓ Hadir</span></td>
-    </tr>`).join('');
+      <td style="font-weight:500;">
+        ${r.nama || '-'}
+      </td>
+
+      <td class="td-mono">
+        ${r.nim || '-'}
+      </td>
+
+      <td class="td-mono">
+        ${r.waktu || '-'}
+      </td>
+
+      <td style="font-size:12px;color:var(--text2);">
+        ${
+          r.lat && r.lng
+          ? `${Number(r.lat).toFixed(4)}, ${Number(r.lng).toFixed(4)}`
+          : '—'
+        }
+      </td>
+
+      <td>
+        ${
+          r.foto
+          ? `<img
+                src="${r.foto}"
+                onclick="showPhoto('${r.foto}')"
+                style="
+                  width:36px;
+                  height:36px;
+                  object-fit:cover;
+                  border-radius:6px;
+                  cursor:pointer;
+                  border:1px solid var(--border);
+                ">`
+          : '—'
+        }
+      </td>
+
+      <td>
+        <span class="badge badge-green">
+          ✓ Hadir
+        </span>
+      </td>
+    </tr>
+  `).join('');
 }
 
 // ============================================================
 // REKAP
 // ============================================================
-function renderRekap(data) {
-  const absen = data || DB.getAbsen();
+async function renderRekap(data = null) {
+
+  const absen = data || await DB.getAbsen();
+
   const tbody = document.getElementById('rekap-tbody');
-  if (!absen.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text3); padding:2rem;">Belum ada data absensi</td></tr>';
+
+  if (!absen || absen.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10"
+            style="text-align:center;
+                   color:var(--text3);
+                   padding:2rem;">
+          Belum ada data absensi
+        </td>
+      </tr>
+    `;
     return;
   }
+
   tbody.innerHTML = absen.map((r, i) => `
     <tr>
-      <td class="td-mono">${i + 1}</td>
-      <td style="font-weight:500;">${r.nama}</td>
-      <td class="td-mono">${r.nim}</td>
-      <td style="font-size:13px;">${r.kegiatan || '—'}</td>
-      <td class="td-mono">${r.tgl}</td>
-      <td class="td-mono">${r.waktu}</td>
-      <td style="font-size:11px; color:var(--text2);">${r.lat ? r.lat.toFixed(5)+', '+r.lng.toFixed(5) : '—'}</td>
-      <td>${r.foto ? `<img src="${r.foto}" onclick="showPhoto('${r.foto}')" style="width:36px;height:36px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid var(--border);">` : '—'}</td>
-      <td class="td-mono" style="font-size:11px;">${r.token ? r.token.substring(0,12)+'...' : '—'}</td>
-      <td><span class="badge badge-green">✓ Hadir</span></td>
-    </tr>`).join('');
+
+      <td class="td-mono">
+        ${i + 1}
+      </td>
+
+      <td style="font-weight:500;">
+        ${r.nama || '-'}
+      </td>
+
+      <td class="td-mono">
+        ${r.nim || '-'}
+      </td>
+
+      <td style="font-size:13px;">
+        ${r.kegiatan || '-'}
+      </td>
+
+      <td class="td-mono">
+        ${r.tgl || '-'}
+      </td>
+
+      <td class="td-mono">
+        ${r.waktu || '-'}
+      </td>
+
+      <td style="font-size:11px;color:var(--text2);">
+        ${
+          r.lat && r.lng
+          ? `${Number(r.lat).toFixed(5)}, ${Number(r.lng).toFixed(5)}`
+          : '—'
+        }
+      </td>
+
+      <td>
+        ${
+          r.foto
+          ? `<img
+              src="${r.foto}"
+              onclick="showPhoto('${r.foto}')"
+              style="
+                width:36px;
+                height:36px;
+                object-fit:cover;
+                border-radius:6px;
+                cursor:pointer;
+                border:1px solid var(--border);
+              ">`
+          : '—'
+        }
+      </td>
+
+      <td class="td-mono" style="font-size:11px;">
+        ${
+          r.token
+          ? r.token.substring(0,12) + '...'
+          : '—'
+        }
+      </td>
+
+      <td>
+        <span class="badge badge-green">
+          ✓ Hadir
+        </span>
+      </td>
+
+    </tr>
+  `).join('');
 }
 
-function filterRekap() {
-  const tgl = document.getElementById('filter-tgl').value;
-  const q = document.getElementById('filter-q').value.toLowerCase();
-  let data = DB.getAbsen();
-  if (tgl) data = data.filter(r => r.tgl === tgl);
-  if (q) data = data.filter(r =>
-    r.nama.toLowerCase().includes(q) || r.nim.toLowerCase().includes(q)
-  );
+async function filterRekap() {
+
+  const tgl =
+    document.getElementById('filter-tgl').value;
+
+  const q =
+    document.getElementById('filter-q')
+      .value.toLowerCase();
+
+  let data = await DB.getAbsen();
+
+  if (tgl)
+    data = data.filter(r => r.tgl === tgl);
+
+  if (q)
+    data = data.filter(r =>
+      r.nama.toLowerCase().includes(q) ||
+      r.nim.toLowerCase().includes(q)
+    );
+
   renderRekap(data);
 }
 
@@ -306,9 +507,14 @@ function clearFilter() {
 // ============================================================
 // EXPORT EXCEL
 // ============================================================
-function exportExcel() {
-  const absen = DB.getAbsen();
-  if (!absen.length) { alert('Tidak ada data untuk diekspor.'); return; }
+async function exportExcel() {
+
+  const absen = await DB.getAbsen();
+
+  if (!absen || absen.length === 0) {
+    alert('Tidak ada data untuk diekspor.');
+    return;
+  }
 
   const rows = absen.map((r, i) => ({
     'No': i + 1,
@@ -326,68 +532,116 @@ function exportExcel() {
   }));
 
   const ws = XLSX.utils.json_to_sheet(rows);
-  // Lock columns width
+
   ws['!cols'] = [
-    {wch:4},{wch:22},{wch:14},{wch:24},{wch:12},{wch:14},
-    {wch:12},{wch:12},{wch:20},{wch:8},{wch:22},{wch:28}
+    {wch:4},
+    {wch:22},
+    {wch:14},
+    {wch:24},
+    {wch:12},
+    {wch:14},
+    {wch:12},
+    {wch:12},
+    {wch:20},
+    {wch:8},
+    {wch:22},
+    {wch:28}
   ];
-
-  // Style header
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  for (let C = range.s.c; C <= range.e.c; ++C) {
-    const addr = XLSX.utils.encode_cell({ r: 0, c: C });
-    if (!ws[addr]) continue;
-    ws[addr].s = { font: { bold: true }, fill: { fgColor: { rgb: '1a2235' } } };
-  }
-
-  // Protect sheet (read-only)
-  ws['!protect'] = { sheet: true, password: 'hme2024', objects: true, scenarios: true };
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Rekap Absensi');
 
-  // Info sheet
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    'Rekap Absensi'
+  );
+
   const infoData = [
-    ['REKAP ABSENSI PIKET HME', ''],
-    ['Sistem', 'Absensi Piket HME v1.0.0'],
-    ['Pembuat Sistem', 'HME — Himpunan Mahasiswa Elektro'],
+    ['REKAP ABSENSI PIKET HME'],
+    [''],
+    ['Sistem', 'Absensi Piket HME'],
     ['Diekspor Pada', new Date().toLocaleString('id-ID')],
-    ['Total Record', absen.length],
-    ['', ''],
-    ['CATATAN', 'Data ini bersifat read-only dan tidak dapat dimodifikasi. Setiap perubahan data akan diketahui dan dapat dilacak.']
+    ['Total Record', absen.length]
   ];
-  const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
-  wsInfo['!cols'] = [{wch:20},{wch:60}];
-  XLSX.utils.book_append_sheet(wb, wsInfo, 'Info Sistem');
 
-  const fname = `Rekap_Absen_HME_${new Date().toISOString().split('T')[0]}.xlsx`;
-  XLSX.writeFile(wb, fname);
+  const wsInfo =
+    XLSX.utils.aoa_to_sheet(infoData);
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    wsInfo,
+    'Info Sistem'
+  );
+
+  const fileName =
+    `Rekap_Absen_HME_${
+      new Date().toISOString().split('T')[0]
+    }.xlsx`;
+
+  XLSX.writeFile(wb, fileName);
 }
 
 // ============================================================
 // SETTING
 // ============================================================
-function updateSettingInfo() {
-  document.getElementById('info-total-absen').textContent = DB.getAbsen().length;
-  document.getElementById('info-total-qr').textContent = DB.getQRList().length;
+async function updateSettingInfo() {
+
+  const absen =
+    await DB.getAbsen();
+
+  const qr =
+    await DB.getQRList();
+
+  document.getElementById(
+    'info-total-absen'
+  ).textContent = absen.length;
+
+  document.getElementById(
+    'info-total-qr'
+  ).textContent = qr.length;
 }
 
-function confirmReset() {
-  if (confirm('⚠️ PERHATIAN!\n\nSemua data absensi dan QR akan dihapus permanen.\nTindakan ini TIDAK DAPAT dibatalkan.\n\nKetik "HAPUS" untuk konfirmasi')) {
-    const input = prompt('Ketik HAPUS untuk konfirmasi:');
-    if (input === 'HAPUS') {
-      localStorage.removeItem('hme_absen');
-      localStorage.removeItem('hme_qr_list');
-      alert('Semua data telah dihapus.');
-      refreshDash();
-      updateSettingInfo();
-      renderQRHistory();
-    } else {
-      alert('Reset dibatalkan.');
-    }
+async function confirmReset() {
+
+  const konfirmasi = confirm(
+    '⚠️ PERHATIAN!\n\n' +
+    'Semua data absensi dan QR akan dihapus permanen.\n' +
+    'Tindakan ini tidak dapat dibatalkan.\n\n' +
+    'Lanjutkan?'
+  );
+
+  if (!konfirmasi) return;
+
+  const input = prompt(
+    'Ketik HAPUS untuk konfirmasi:'
+  );
+
+  if (input !== 'HAPUS') {
+    alert('Reset dibatalkan.');
+    return;
+  }
+
+  try {
+
+    await remove(ref(db, "absensi"));
+    await remove(ref(db, "qr"));
+
+    alert('Semua data berhasil dihapus.');
+
+    await refreshDash();
+    await renderQRHistory();
+    await updateSettingInfo();
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert(
+      'Gagal menghapus data Firebase.'
+    );
+
   }
 }
-
 // ============================================================
 // PHOTO MODAL
 // ============================================================
@@ -416,12 +670,16 @@ function showState(s) {
   });
 }
 
-function startAbsenFlow(token) {
+async function startAbsenFlow(token) {
   showState('loading');
-  const qr = DB.getQRByToken(token);
+
+  const qr = await DB.getQRByToken(token);
 
   if (!qr) {
-    showError('QR Tidak Ditemukan', 'QR code ini tidak terdaftar dalam sistem.');
+    showError(
+      'QR Tidak Ditemukan',
+      'QR code ini tidak terdaftar dalam sistem.'
+    );
     return;
   }
   if (qr.used) {
@@ -584,8 +842,10 @@ function retakePhoto() {
   openCamera();
 }
 
-function finalSubmit(skipPhoto) {
+async function finalSubmit(skipPhoto) {
+
   const now = new Date();
+
   const record = {
     nama: absenData._formNama,
     nim: absenData._formNim,
@@ -599,19 +859,18 @@ function finalSubmit(skipPhoto) {
     createdAt: now.toISOString()
   };
 
-  DB.addAbsen(record);
-  DB.markQRUsed(absenData.token);
+  await DB.addAbsen(record);
 
-  // Show success
+  await DB.markQRUsed(
+    absenData.token
+  );
+
   showState('success');
-  document.getElementById('success-msg').textContent =
-    `${record.nama} — ${record.nim} berhasil absen pada ${record.waktu}`;
 
-  if (record.foto) {
-    const ph = document.getElementById('success-photo');
-    ph.src = record.foto;
-    ph.style.display = 'block';
-  }
+  document.getElementById(
+    'success-msg'
+  ).textContent =
+    `${record.nama} — ${record.nim} berhasil absen pada ${record.waktu}`;
 }
 
 function showError(title, msg) {
