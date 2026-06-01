@@ -912,4 +912,6 @@ function showError(title, msg) {
 // ============================================================
 // INIT
 // ============================================================
-init();
+window.addEventListener('DOMContentLoaded', () => {
+  init();
+});
