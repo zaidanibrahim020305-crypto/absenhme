@@ -122,22 +122,31 @@ window.addEventListener('load', init);
 // ============================================================
 // ADMIN TABS
 // ============================================================
-function showTab(event, t) {
-  document.querySelectorAll('.page').forEach(p => {
+window.showTab = function(t){
+
+  document.querySelectorAll('.page').forEach(p=>{
     p.classList.remove('active');
   });
 
-  document.querySelectorAll('.nav-tab').forEach(b => {
+  document.querySelectorAll('.nav-tab').forEach(b=>{
     b.classList.remove('active');
   });
 
   document.getElementById('tab-' + t).classList.add('active');
-  event.currentTarget.classList.add('active');
 
-  if (t === 'rekap') renderRekap();
-  if (t === 'dash') refreshDash();
-  if (t === 'setting') updateSettingInfo();
-}
+  const btn = document.querySelector(
+    `.nav-tab[onclick*="${t}"]`
+  );
+
+  if(btn){
+    btn.classList.add('active');
+  }
+
+  if(t === 'rekap') renderRekap();
+  if(t === 'dash') refreshDash();
+  if(t === 'setting') updateSettingInfo();
+
+};
 
 // ============================================================
 // GENERATE QR
