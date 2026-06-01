@@ -142,25 +142,37 @@ window.addEventListener('load', init);
 // ============================================================
 // ADMIN TABS
 // ============================================================
+window.showTab = function(t) {
 
-function showTab(event, t) {
-  document.querySelectorAll('.page').forEach(p => {
-    p.classList.remove('active');
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
   });
 
-  document.querySelectorAll('.nav-tab').forEach(b => {
-    b.classList.remove('active');
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.classList.remove('active');
   });
 
-  document.getElementById('tab-' + t).classList.add('active');
-  event.currentTarget.classList.add('active');
+  const page = document.getElementById('tab-' + t);
+
+  if (!page) {
+    console.error('Tab tidak ditemukan:', t);
+    return;
+  }
+
+  page.classList.add('active');
+
+  const btn = document.querySelector(
+    `.nav-tab[onclick="showTab('${t}')"]`
+  );
+
+  if (btn) {
+    btn.classList.add('active');
+  }
 
   if (t === 'rekap') renderRekap();
   if (t === 'dash') refreshDash();
   if (t === 'setting') updateSettingInfo();
-}
-
-window.showTab = showTab;
+};
 
 // ============================================================
 // GENERATE QR
