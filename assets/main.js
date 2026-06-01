@@ -81,7 +81,7 @@ const DB = {
   }
 };
 
-window.showTab = showTab;
+// window.showTab = showTab;
 window.generateQR = generateQR;
 window.downloadQR = downloadQR;
 window.copyLink = copyLink;
