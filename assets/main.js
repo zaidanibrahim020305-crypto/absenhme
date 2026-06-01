@@ -9,7 +9,8 @@ import {
   set,
   get,
   push,
-  update
+  update,
+  remove
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -80,6 +81,25 @@ const DB = {
   }
 };
 
+window.showTab = showTab;
+window.generateQR = generateQR;
+window.downloadQR = downloadQR;
+window.copyLink = copyLink;
+
+window.filterRekap = filterRekap;
+window.clearFilter = clearFilter;
+window.exportExcel = exportExcel;
+
+window.confirmReset = confirmReset;
+
+window.showPhoto = showPhoto;
+window.closePhotoModal = closePhotoModal;
+
+window.submitAbsen = submitAbsen;
+window.capturePhoto = capturePhoto;
+window.retakePhoto = retakePhoto;
+window.finalSubmit = finalSubmit;
+
 // ============================================================
 // ROUTING
 // ============================================================
@@ -122,31 +142,6 @@ window.addEventListener('load', init);
 // ============================================================
 // ADMIN TABS
 // ============================================================
-window.showTab = function(t){
-
-  document.querySelectorAll('.page').forEach(p=>{
-    p.classList.remove('active');
-  });
-
-  document.querySelectorAll('.nav-tab').forEach(b=>{
-    b.classList.remove('active');
-  });
-
-  document.getElementById('tab-' + t).classList.add('active');
-
-  const btn = document.querySelector(
-    `.nav-tab[onclick*="${t}"]`
-  );
-
-  if(btn){
-    btn.classList.add('active');
-  }
-
-  if(t === 'rekap') renderRekap();
-  if(t === 'dash') refreshDash();
-  if(t === 'setting') updateSettingInfo();
-
-};
 
 function showTab(event, t) {
   document.querySelectorAll('.page').forEach(p => {
