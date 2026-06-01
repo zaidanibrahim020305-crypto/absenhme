@@ -20,10 +20,21 @@
     <div class="nav-logo"><img src="./assets/picture/HME_vektor.png" alt="Logo HME" style="width: 50px;"> 
       <span>Piket HME</span> </div>
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showTab('dash')">📊 <span class="label">Dashboard</span></button>
-      <button class="nav-tab" onclick="showTab('generate')">🔗 <span class="label">Buat QR</span></button>
-      <button class="nav-tab" onclick="showTab('rekap')">📋 <span class="label">Rekap</span></button>
-      <button class="nav-tab" onclick="showTab('setting')">⚙️ <span class="label">Pengaturan</span></button>
+           <button class="nav-tab active" onclick="showTab(event,'dash')">
+       📊 Dashboard
+     </button>
+     
+     <button class="nav-tab" onclick="showTab(event,'generate')">
+       🔗 Buat QR
+     </button>
+     
+     <button class="nav-tab" onclick="showTab(event,'rekap')">
+       📋 Rekap
+     </button>
+     
+     <button class="nav-tab" onclick="showTab(event,'setting')">
+       ⚙️ Pengaturan
+     </button>
     </div>
   </nav>
 
