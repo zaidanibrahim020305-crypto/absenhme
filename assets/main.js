@@ -33,31 +33,51 @@ window.firebasePush = push;
 window.firebaseUpdate = update;
 
 const DB = {
-  getAbsen: () => JSON.parse(localStorage.getItem('hme_absen') || '[]'),
-  setAbsen: (d) => localStorage.setItem('hme_absen', JSON.stringify(d)),
-  getQRList: () => JSON.parse(localStorage.getItem('hme_qr_list') || '[]'),
-  setQRList: (d) => localStorage.setItem('hme_qr_list', JSON.stringify(d)),
-  addAbsen: (rec) => {
-    const d = DB.getAbsen();
-    d.push(rec);
-    DB.setAbsen(d);
+
+  async getAbsen() {
+    const snapshot = await get(ref(db, "absensi"));
+    if (snapshot.exists()) {
+      return Object.values(snapshot.val());
+    }
+    return [];
   },
-  addQR: (qr) => {
-    const d = DB.getQRList();
-    d.push(qr);
-    DB.setQRList(d);
+
+  async addAbsen(record) {
+    const newRef = push(ref(db, "absensi"));
+    await set(newRef, record);
   },
-  markQRUsed: (token) => {
-    const d = DB.getQRList();
-    const q = d.find(x => x.token === token);
-    if (q) { q.used = true; DB.setQRList(d); }
+
+  async getQRList() {
+    const snapshot = await get(ref(db, "qr"));
+    if (snapshot.exists()) {
+      return Object.values(snapshot.val());
+    }
+    return [];
   },
-  markQRExpired: (token) => {
-    const d = DB.getQRList();
-    const q = d.find(x => x.token === token);
-    if (q && !q.used) { q.expired = true; DB.setQRList(d); }
+
+  async addQR(qrData) {
+    await set(ref(db, "qr/" + qrData.token), qrData);
   },
-  getQRByToken: (token) => DB.getQRList().find(x => x.token === token)
+
+  async getQRByToken(token) {
+    const snapshot = await get(ref(db, "qr/" + token));
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+    return null;
+  },
+
+  async markQRUsed(token) {
+    await update(ref(db, "qr/" + token), {
+      used: true
+    });
+  },
+
+  async markQRExpired(token) {
+    await update(ref(db, "qr/" + token), {
+      expired: true
+    });
+  }
 };
 
 // ============================================================
